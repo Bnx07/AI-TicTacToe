@@ -290,18 +290,13 @@ function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de ca
     });
 
     let auxTable = crearTableroDesdeHTML();
-    
-    console.log("Checkea dobles");
-    console.log(auxTable)
 
     let doubleThreats = []
 
     cells.forEach((cell, index) => {
         if (!cell.classList.contains('blue') && !cell.classList.contains('red')) {
             const { row, col } = getRowAndColFromIndex(index);
-            console.log(row, col)
             if (tieneMultiplesAmenazas(auxTable, 2, row, col, false)) {
-                console.log("PUEDE HACER DOBLE EN", row, col)
                 doubleThreats.push({row, col});
             }
         }
@@ -345,14 +340,11 @@ function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de ca
             play.empty.forEach(cell => {
                 if (cells[cell].classList.contains('blue')) isValid = false;
                 else {
-                    console.log("Casilla: ", cell);
                     const { row, col } = getRowAndColFromIndex(cell);
                     toAddValue.push({row, col})
                 }
             })
             if (isValid) {
-                console.log("ToAddValue")
-                console.log(toAddValue)
                 toAddValue.forEach(obj => {
                     boardWeights[obj.row][obj.col] += 0.3;
                 })
@@ -396,7 +388,6 @@ function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de ca
 
     for (const position of sortedPositions) {
         if (position == 4 && !cells[4].classList.contains('red') && !cells[4].classList.contains('large')) { // ? Revisa si jugar en medio
-            console.log("Usar grande en medio");
             choice = {size: "large", pos: 4};
             finished = true;
             break;
@@ -404,17 +395,14 @@ function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de ca
 
         if (cells[position].classList.contains('blue')) { // ? Si el enemigo tiene una ficha ahí
             if (cells[position].classList.contains('medium')) {
-                console.log('Grande: ', position);
                 choice = {size: "large", pos: position};
                 finished = true;
                 break;
             } else if (cells[position].classList.contains('small') && flattenedArray[position] >= 1.4) {
                 choice = {size: "large", pos: position};
-                console.log('Grande: ', position);
                 finished = true;
                 break;
             } else if (cells[position].classList.contains('small')) {
-                console.log("Mediano: ", position)
                 choice = {size: "medium", pos: position};
                 finished = true;
                 break;
@@ -426,7 +414,6 @@ function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de ca
             
             possibilities.forEach(play => {
                 if (play.type == 'use' && play.empty == position) {
-                    console.log("Wins: ", position);
                     let size = oponentSize();
                     choice = {size: size, pos: position};
                     wins = true;
@@ -445,7 +432,6 @@ function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de ca
                 if (play.type == 'block' && play.empty == position) {
                     let size = oponentSize();
                     choice = {size: size, pos: position};
-                    console.log("Blocks: ", position, size);
                     blocks = true;
                 }
             })
@@ -466,13 +452,11 @@ function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de ca
                         checkedDouble = true;
                         doublePos = index;
                         choice = {size: size, pos: doublePos};
-                        console.log('Jugar para doble en: ', index, size);
                     } else {
                         if (!checkedDouble) {
                             let size;
                             (redPieces.large + redPieces.medium + redPieces.small != 9) ? size = "medium" : size = "large";
                             choice = {size, pos: sortedPositions[0]};
-                            console.log("Por descarte: ", sortedPositions[0]);
                         }
                     }
                 }
@@ -480,9 +464,6 @@ function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de ca
         }
     }
 
-    console.log(choice)
-
-    console.log(boardWeights);
     return choice;
 }
 
@@ -573,7 +554,6 @@ highlightPick();
 setInterval(() => {
     if (currentPlayer == 'red') {
         let result = decide();
-        console.log(result);
         swapSize(result.size);
      
         let validMovement = fillPosition(cells[result.pos]);
