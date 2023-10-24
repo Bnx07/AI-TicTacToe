@@ -196,6 +196,7 @@ function cleanHighlight() {
 // * posibles.forEach(pensar)
 
 // FIXME: La IA decide jugar large aunque no tiene y siempre utiliza large, hacer que solo sea si es doble o bloqueo.
+
 // FIXME: La IA no prevé situaciones de doble del oponente para taparlas
 
 // FIXME: Posición de victoria perdida:
@@ -255,8 +256,12 @@ function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de ca
                 if (color == 'blue') possibilities.push({ type: "block", empty: empty, occupied: occupied });
                 else possibilities.push({ type: "use", empty: empty[0], occupied: occupied });
             }
+
+            // TODO: Si solo hay un occupied, entonces esas otras dos casillas habilitan una amenaza
         }
     });
+
+    // TODO: Hacer acá un forEach y eso para los dobles del oponente
 
     // ! Asignación de peso a cada casilla (Sin considerar tamaño de piezas)
 
