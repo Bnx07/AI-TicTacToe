@@ -418,7 +418,7 @@ function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de ca
                 break;
             } else if (cells[position].classList.contains('small')) {
                 console.log("Mediano: ", position)
-                choice = {size: "medium", pos: 4};
+                choice = {size: "medium", pos: position};
                 finished = true;
                 break;
             }
@@ -474,7 +474,7 @@ function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de ca
                         if (!checkedDouble) {
                             let size = "medium";
                             choice = {size, pos: sortedPositions[0]};
-                            console.log("Por descarte: ", sortedPositions[0])
+                            console.log("Por descarte: ", sortedPositions[0]);
                         }
                     }
                 }
@@ -482,9 +482,10 @@ function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de ca
         }
     }
 
+    console.log(choice)
 
     console.log(boardWeights);
-    return choice
+    return choice;
 }
 
 // ! Funciones auxiliares de la IA
