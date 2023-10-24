@@ -103,7 +103,6 @@ function cellClick(event) {
     if (validMovement) {
 
         fillDiv(currentPlayer);
-        decide();
 
         if (checkWin()) {
             message.innerHTML = `El jugador ${currentPlayer} ha ganado!`;
@@ -196,8 +195,25 @@ function cleanHighlight() {
 // * cells.forEach(if (checkCanFill) posibles.push({cell, piece}))
 // * posibles.forEach(pensar)
 
+// FIXME: La IA decide jugar large aunque no tiene y siempre utiliza large, hacer que solo sea si es doble o bloqueo.
+// FIXME: La IA no prevé situaciones de doble del oponente para taparlas
+
+// FIXME: Posición de victoria perdida:
+// * Tablero:
+// *    {2,l} {1,m} {0,0}
+// *    {2,m} {2,l} {0,0}
+// *    {1,l} {2,l} {1,l}
+// * En vez de jugar en 5, tapando Y haciendo un doble, juega en 3 comiendo con L
+// * Para solucionar, hay que agregar puntos por casilla si crean una posibilidad de victoria
+// * Con un valor de 0.5 o similar debería servir
+
+// TODO: Crear función para agregar valor a la casilla si la misma habilita una posible victoria
+// TODO: Crear función para revisar posibles dobles del jugador y añadirlos a block
+
 function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de cada posicion o incluso un tensor 3x3x3 (3 columnas, 3 filas, 3 tamaños de pieza)
     // ! Combinaciones de victoria y demás variables
+
+    let choice;
 
     const lines = [ // ? Lineas en las que se hace tateti
         [0, 1, 2],
@@ -301,6 +317,7 @@ function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de ca
     for (const position of sortedPositions) {
         if (position == 4 && !cells[4].classList.contains('red') && !cells[4].classList.contains('large')) { // ? Revisa si jugar en medio
             console.log("Usar grande en medio");
+            choice = {size: "large", pos: 4};
             finished = true;
             break;
         }
@@ -308,14 +325,17 @@ function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de ca
         if (cells[position].classList.contains('blue')) { // ? Si el enemigo tiene una ficha ahí
             if (cells[position].classList.contains('medium')) {
                 console.log('Grande: ', position);
+                choice = {size: "large", pos: position};
                 finished = true;
                 break;
             } else if (cells[position].classList.contains('small') && flattenedArray[position] >= 1.4) {
+                choice = {size: "large", pos: position};
                 console.log('Grande: ', position);
                 finished = true;
                 break;
             } else if (cells[position].classList.contains('small')) {
                 console.log("Mediano: ", position)
+                choice = {size: "medium", pos: 4};
                 finished = true;
                 break;
             }
@@ -327,6 +347,8 @@ function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de ca
             possibilities.forEach(play => {
                 if (play.type == 'use' && play.empty == position) {
                     console.log("Wins: ", position);
+                    let size = oponentSize();
+                    choice = {size: size, pos: position};
                     wins = true;
                 }
             })
@@ -342,6 +364,7 @@ function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de ca
             possibilities.forEach(play => {
                 if (play.type == 'block' && play.empty == position) {
                     let size = oponentSize();
+                    choice = {size: size, pos: position};
                     console.log("Blocks: ", position, size);
                     blocks = true;
                 }
@@ -362,9 +385,14 @@ function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de ca
                         let size = oponentSize();
                         checkedDouble = true;
                         doublePos = index;
+                        choice = {size: size, pos: doublePos};
                         console.log('Jugar para doble en: ', index, size);
                     } else {
-                        sortedPositions[0]
+                        if (!checkedDouble) {
+                            let size = "medium";
+                            choice = {size, pos: sortedPositions[0]};
+                            console.log("Por descarte: ", sortedPositions[0])
+                        }
                     }
                 }
             })
@@ -373,6 +401,7 @@ function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de ca
 
 
     console.log(boardWeights);
+    return choice
 }
 
 // ! Funciones auxiliares de la IA
@@ -413,7 +442,6 @@ function tieneMultiplesAmenazas(board, player, row, col) {
     // Verificar si la nueva pieza crea múltiples amenazas de victoria
 
     if (redPieces.large + redPieces.medium + redPieces.small >= 8) {
-        console.log(redPieces.large + redPieces.medium + redPieces.small)
         return false
     }
     return (
@@ -454,9 +482,38 @@ function crearTableroDesdeHTML() {
     return tablero;
 }
 
-// Ejemplo de uso
-const tablero = crearTableroDesdeHTML();
-console.log(tablero);
+// ! Ejecución inicial del juego
 
 highlightPick();
-decide();
+
+setInterval(() => {
+    if (currentPlayer == 'red') {
+        let result = decide();
+        console.log(result);
+        swapSize(result.size);
+     
+        let validMovement = fillPosition(cells[result.pos]);
+
+        if (validMovement) {
+
+            fillDiv(currentPlayer);
+    
+            if (checkWin()) {
+                message.innerHTML = `El jugador ${currentPlayer} ha ganado!`;
+            } else {
+                currentPlayer = waitingPlayer;
+    
+                if (currentPlayer == 'blue') {
+                    waitingPlayer = 'red';
+                    turn.innerHTML = "azul";
+                } else {
+                    waitingPlayer = 'blue';
+                    turn.innerHTML = "rojo"
+                }
+    
+                highlightPick();
+            }
+    
+        }
+    }
+}, 5000);
