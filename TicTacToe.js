@@ -146,6 +146,8 @@ function checkWin() {
     }
 
     if (isWin) {
+        currentPlayer = "";
+        waitingPlayer = "";
         cleanHighlight();
         document.getElementById('reset').style.display = 'block';
         cells.forEach(cell => cell.removeEventListener('click', cellClick));
@@ -199,7 +201,8 @@ function cleanHighlight() {
 
 // FIXME: La IA no prevé situaciones de doble del oponente para taparlas
 
-// FIXME: Posición de victoria perdida:
+// FIX ME: Posición de victoria perdida:
+// ? Ya gana
 // * Tablero:
 // *    {2,l} {1,m} {0,0}
 // *    {2,m} {2,l} {0,0}
@@ -208,7 +211,7 @@ function cleanHighlight() {
 // * Para solucionar, hay que agregar puntos por casilla si crean una posibilidad de victoria
 // * Con un valor de 0.5 o similar debería servir
 
-// TODO: Crear función para agregar valor a la casilla si la misma habilita una posible victoria
+// TO DO: Crear función para agregar valor a la casilla si la misma habilita una posible victoria
 // TODO: Crear función para revisar posibles dobles del jugador y añadirlos a block
 
 function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de cada posicion o incluso un tensor 3x3x3 (3 columnas, 3 filas, 3 tamaños de pieza)
@@ -257,7 +260,12 @@ function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de ca
                 else possibilities.push({ type: "use", empty: empty[0], occupied: occupied });
             }
 
-            // TODO: Si solo hay un occupied, entonces esas otras dos casillas habilitan una amenaza
+            // ? Si solo hay un occupied, entonces esas otras dos casillas habilitan una amenaza
+            if (occupied.length == 1) {
+                if (color == 'red') {
+                    possibilities.push({ type: "threat", empty: empty, occupied: occupied[0]});
+                }
+            }
         }
     });
 
@@ -281,6 +289,24 @@ function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de ca
                     boardWeights[row][col] += 0.7;
                 })
                 boardWeights[row][col] += 0.7;
+            }
+        } else if (play.type === "threat") {
+            let isValid = true;
+            let toAddValue = []
+            play.empty.forEach(cell => {
+                if (cells[cell].classList.contains('blue')) isValid = false;
+                else {
+                    console.log("Casilla: ", cell);
+                    const { row, col } = getRowAndColFromIndex(cell);
+                    toAddValue.push({row, col})
+                }
+            })
+            if (isValid) {
+                console.log("ToAddValue")
+                console.log(toAddValue)
+                toAddValue.forEach(obj => {
+                    boardWeights[obj.row][obj.col] += 0.3;
+                })
             }
         }
     });
@@ -521,4 +547,4 @@ setInterval(() => {
     
         }
     }
-}, 5000);
+}, 1000);
