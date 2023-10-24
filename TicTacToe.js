@@ -1,6 +1,22 @@
 let currentPlayer = 'blue';
 let waitingPlayer = 'red';
 let pieceSize = 'medium';
+let winner;
+
+let blueWins = sessionStorage.getItem('blue');
+let redWins = sessionStorage.getItem('red');
+
+if (blueWins == null) {
+    sessionStorage.setItem('blue', 0);
+    blueWins = 0;
+}
+if (redWins == null) {
+    sessionStorage.setItem('red', 0);
+    redWins = 0;
+}
+
+document.getElementById('blueWins').innerHTML = blueWins;
+document.getElementById('redWins').innerHTML = redWins;
 
 let redPieces = {
     large: 3,
@@ -105,7 +121,7 @@ function cellClick(event) {
         fillDiv(currentPlayer);
 
         if (checkWin()) {
-            message.innerHTML = `El jugador ${currentPlayer} ha ganado!`;
+            message.innerHTML = `${winner} ha ganado!`;
         } else {
             currentPlayer = waitingPlayer;
 
@@ -119,7 +135,6 @@ function cellClick(event) {
 
             highlightPick();
         }
-
     }
 }
 
@@ -146,6 +161,16 @@ function checkWin() {
     }
 
     if (isWin) {
+        if (currentPlayer == 'blue') {
+            winner = "El jugador";
+            sessionStorage.setItem('blue', parseInt(blueWins) + 1)
+        }
+
+        if (currentPlayer == 'red') {
+            winner = "La IA";
+            sessionStorage.setItem('red', parseInt(redWins) + 1);
+        }
+
         currentPlayer = "";
         waitingPlayer = "";
         cleanHighlight();
@@ -559,7 +584,7 @@ setInterval(() => {
             fillDiv(currentPlayer);
     
             if (checkWin()) {
-                message.innerHTML = `El jugador ${currentPlayer} ha ganado!`;
+                message.innerHTML = `${winner} ha ganado!`;
             } else {
                 currentPlayer = waitingPlayer;
     
