@@ -197,9 +197,9 @@ function cleanHighlight() {
 // * cells.forEach(if (checkCanFill) posibles.push({cell, piece}))
 // * posibles.forEach(pensar)
 
-// FIXME: La IA decide jugar large aunque no tiene y siempre utiliza large, hacer que solo sea si es doble o bloqueo.
+// FIX ME: La IA decide jugar large aunque no tiene y siempre utiliza large, hacer que solo sea si es doble o bloqueo.
 
-// FIXME: La IA no prevé situaciones de doble del oponente para taparlas
+// FIX ME: La IA no prevé situaciones de doble del oponente para taparlas
 
 // FIX ME: Posición de victoria perdida:
 // ? Ya gana
@@ -211,12 +211,10 @@ function cleanHighlight() {
 // * Para solucionar, hay que agregar puntos por casilla si crean una posibilidad de victoria
 // * Con un valor de 0.5 o similar debería servir
 
-// TO DO: Crear función para agregar valor a la casilla si la misma habilita una posible victoria
-// TODO: Crear función para revisar posibles dobles del jugador y añadirlos a block
-
 function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de cada posicion o incluso un tensor 3x3x3 (3 columnas, 3 filas, 3 tamaños de pieza)
     // ! Combinaciones de victoria y demás variables
 
+    console.clear()
     let choice;
 
     const lines = [ // ? Lineas en las que se hace tateti
@@ -269,7 +267,36 @@ function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de ca
         }
     });
 
-    // TODO: Hacer acá un forEach y eso para los dobles del oponente
+    let auxTable = crearTableroDesdeHTML();
+    
+    console.log("Checkea dobles");
+    console.log(auxTable)
+
+    let doubleThreats = []
+
+    cells.forEach((cell, index) => {
+        if (!cell.classList.contains('blue') && !cell.classList.contains('red')) {
+            const { row, col } = getRowAndColFromIndex(index);
+            console.log(row, col)
+            if (tieneMultiplesAmenazas(auxTable, 2, row, col, false)) {
+                console.log("PUEDE HACER DOBLE EN", row, col)
+                doubleThreats.push({row, col});
+            }
+        }
+    })
+
+    if (doubleThreats.length == 2 && (doubleThreats[0].column == doubleThreats[1].row && doubleThreats[0].row == doubleThreats[1].column)) {
+        let first = doubleThreats[0];
+        let second = doubleThreats[1];
+        
+        doubleThreats.forEach(threat => {
+            boardWeights[threat.row][threat.col] -= 2;
+        })
+    } else {
+        doubleThreats.forEach(threat => {
+            boardWeights[threat.row][threat.col] += 1;
+        })
+    }
 
     // ! Asignación de peso a cada casilla (Sin considerar tamaño de piezas)
 
@@ -405,7 +432,7 @@ function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de ca
                 break;
             }
 
-            // ! Si nada se cumplió antes, entonces meter más lógica de "Si se pone una pieza acá se crean X casi tateti"
+            // ! Si nada se cumplió antes, entonces meter más lógica de "Si se pone una pieza acá se crean 2 amenazas de victoria"
         
             let auxTable = crearTableroDesdeHTML();
         
@@ -465,16 +492,18 @@ function sortArrayWithPositions(arr2D) {
     return sortedPositions;
 }
 
-function tieneMultiplesAmenazas(board, player, row, col) {
+function tieneMultiplesAmenazas(board, player, row, col, checkRedPieces = true) {
     // Copiar el tablero y colocar temporalmente la pieza en la posición especificada
     const tempBoard = board.map(row => row.slice());
     tempBoard[row][col] = player;
 
-    // Verificar si la nueva pieza crea múltiples amenazas de victoria
-
-    if (redPieces.large + redPieces.medium + redPieces.small >= 8) {
-        return false
+    if (checkRedPieces) {
+        if (redPieces.large + redPieces.medium + redPieces.small >= 8) {
+            return false
+        }
     }
+
+    // Verificar si la nueva pieza crea múltiples amenazas de victoria
     return (
         verificaAmenazas(tempBoard, player, row, col, 0, 1) >= 2 ||
         verificaAmenazas(tempBoard, player, row, col, 1, 0) >= 2 ||
