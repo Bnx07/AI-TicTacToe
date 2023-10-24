@@ -157,20 +157,17 @@ function checkWin() {
 
         if (cells[a].classList.contains(currentPlayer) && cells[b].classList.contains(currentPlayer) && cells[c].classList.contains(currentPlayer)) {
             isWin = true;
+            if (cells[a].classList.contains('red')) {
+                winner = "La IA";
+                sessionStorage.setItem('red', parseInt(redWins) + 1);
+            } else {
+                winner = "El jugador";
+                sessionStorage.setItem('blue', parseInt(blueWins) + 1);    
+            }
         }
     }
 
     if (isWin) {
-        if (currentPlayer == 'blue') {
-            winner = "El jugador";
-            sessionStorage.setItem('blue', parseInt(blueWins) + 1)
-        }
-
-        if (currentPlayer == 'red') {
-            winner = "La IA";
-            sessionStorage.setItem('red', parseInt(redWins) + 1);
-        }
-
         currentPlayer = "";
         waitingPlayer = "";
         cleanHighlight();
@@ -472,7 +469,8 @@ function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de ca
                         console.log('Jugar para doble en: ', index, size);
                     } else {
                         if (!checkedDouble) {
-                            let size = "medium";
+                            let size;
+                            (redPieces.large + redPieces.medium + redPieces.small != 9) ? size = "medium" : size = "large";
                             choice = {size, pos: sortedPositions[0]};
                             console.log("Por descarte: ", sortedPositions[0]);
                         }
