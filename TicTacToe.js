@@ -103,6 +103,7 @@ function cellClick(event) {
     if (validMovement) {
 
         fillDiv(currentPlayer);
+        decide();
 
         if (checkWin()) {
             message.innerHTML = `El jugador ${currentPlayer} ha ganado!`;
@@ -279,6 +280,10 @@ function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de ca
             const col = index % 3;
             boardWeights[row][col] += 0.15;
             if (cell.classList.contains('large')) boardWeights[row][col] = 0;
+        } else if (cell.classList.contains('red')) {
+            const row = Math.floor(index / 3);
+            const col = index % 3;
+            boardWeights[row][col] = 0;
         }
     });
 
@@ -336,7 +341,8 @@ function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de ca
             let blocks = false;
             possibilities.forEach(play => {
                 if (play.type == 'block' && play.empty == position) {
-                    console.log("Blocks: ", position);
+                    let size = oponentSize();
+                    console.log("Blocks: ", position, size);
                     blocks = true;
                 }
             })
@@ -353,9 +359,12 @@ function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de ca
                 if (!cell.classList.contains('blue') && !cell.classList.contains('red')) {
                     const { row, col } = getRowAndColFromIndex(index);
                     if (tieneMultiplesAmenazas(auxTable, 1, row, col) && !checkedDouble) {
+                        let size = oponentSize();
                         checkedDouble = true;
                         doublePos = index;
-                        console.log('Jugar para doble en: ', index);
+                        console.log('Jugar para doble en: ', index, size);
+                    } else {
+                        sortedPositions[0]
                     }
                 }
             })
@@ -367,6 +376,12 @@ function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de ca
 }
 
 // ! Funciones auxiliares de la IA
+
+function oponentSize() {
+    if (bluePieces.large != 0 && redPieces.large != 0) return 'large';
+    if (bluePieces.medium != 0 && redPieces.medium != 0) return 'medium';
+    return "small";
+}
 
 function getRowAndColFromIndex(index) {
     const row = Math.floor(index / 3);
@@ -396,6 +411,11 @@ function tieneMultiplesAmenazas(board, player, row, col) {
     tempBoard[row][col] = player;
 
     // Verificar si la nueva pieza crea múltiples amenazas de victoria
+
+    if (redPieces.large + redPieces.medium + redPieces.small >= 8) {
+        console.log(redPieces.large + redPieces.medium + redPieces.small)
+        return false
+    }
     return (
         verificaAmenazas(tempBoard, player, row, col, 0, 1) >= 2 ||
         verificaAmenazas(tempBoard, player, row, col, 1, 0) >= 2 ||
