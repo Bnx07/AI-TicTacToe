@@ -1,10 +1,12 @@
 let currentPlayer = 'blue';
 let waitingPlayer = 'red';
 let pieceSize = 'medium';
+let aiPlays = true;
 let winner;
 
 let blueWins = sessionStorage.getItem('blue');
 let redWins = sessionStorage.getItem('red');
+let ties = sessionStorage.getItem('ties');
 
 if (blueWins == null) {
     sessionStorage.setItem('blue', 0);
@@ -14,9 +16,14 @@ if (redWins == null) {
     sessionStorage.setItem('red', 0);
     redWins = 0;
 }
+if (ties == null) {
+    sessionStorage.setItem('ties', 0);
+    ties = 0;
+}
 
 document.getElementById('blueWins').innerHTML = blueWins;
 document.getElementById('redWins').innerHTML = redWins;
+document.getElementById('ties').innerHTML = ties;
 
 let redPieces = {
     large: 3,
@@ -122,6 +129,8 @@ function cellClick(event) {
 
         if (checkWin()) {
             message.innerHTML = `${winner} ha ganado!`;
+        } else if (isTie()) {
+            message.innerHTML = `Wow! Ha sido un empate`;
         } else {
             currentPlayer = waitingPlayer;
 
@@ -178,6 +187,41 @@ function checkWin() {
     return isWin;
 }
 
+function isTie() {
+    let allOccupied = true;
+    cells.forEach(cell => {
+        if (!cell.classList.contains('blue') && !cell.classList.contains('red')) allOccupied = false;
+    })
+
+    let avaliablePlay = false;
+
+    if (allOccupied) {
+        for (const cell of cells) {
+            if (cell.classList.contains(waitingPlayer)) continue;
+
+            let playerAvailable;
+            
+            (currentPlayer == 'red') ? playerAvailable = bluePieces : playerAvailable = redPieces;
+            
+            if (cell.classList.contains(currentPlayer)) {
+                if (!(cell.classList.contains("large") || (cell.classList.contains('medium') && playerAvailable.large == 0) || (cell.classList.contains('small') && playerAvailable.large == 0 && playerAvailable.medium == 0))) avaliablePlay = true;
+            }
+        }
+
+        if (avaliablePlay) return false;
+        else  {
+            sessionStorage.setItem('ties', parseInt(ties) + 1);
+            cleanHighlight();
+            currentPlayer = "";
+            waitingPlayer = "";
+            document.getElementById('reset').style.display = 'block';
+            cells.forEach(cell => cell.removeEventListener('click', cellClick));
+            return true;
+        }
+    }
+    return false;
+}
+
 function fillDiv(player) {
     document.getElementById(`${player}Large`).innerHTML = '';
     document.getElementById(`${player}Medium`).innerHTML = '';
@@ -223,12 +267,12 @@ function cleanHighlight() {
 
 // FIX ME: La IA no prevé situaciones de doble del oponente para taparlas
 
-// FIX ME: Posición de victoria perdida:
-// ? Ya gana
+// FIX ME: Se detecta empate:
+// ? Fixed
 // * Tablero:
-// *    {2,l} {1,m} {0,0}
-// *    {2,m} {2,l} {0,0}
 // *    {1,l} {2,l} {1,l}
+// *    {2,m} {2,l} {1,m}
+// *    {2,l} {1,m} {2,m}
 // * En vez de jugar en 5, tapando Y haciendo un doble, juega en 3 comiendo con L
 // * Para solucionar, hay que agregar puntos por casilla si crean una posibilidad de victoria
 // * Con un valor de 0.5 o similar debería servir
@@ -236,7 +280,6 @@ function cleanHighlight() {
 function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de cada posicion o incluso un tensor 3x3x3 (3 columnas, 3 filas, 3 tamaños de pieza)
     // ! Combinaciones de victoria y demás variables
 
-    console.clear()
     let choice;
 
     const lines = [ // ? Lineas en las que se hace tateti
@@ -322,7 +365,7 @@ function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de ca
         if (play.type === 'use') {
             // Asigna un peso positivo a la casilla que se debe usar para ganar
             const { row, col } = getRowAndColFromIndex(play.empty);
-            boardWeights[row][col] += 1.5;
+            boardWeights[row][col] += 3;
         } else if (play.type === 'block') {
             // Asigna un peso positivo a las casillas que bloquean la victoria del oponente
             const { row, col } = getRowAndColFromIndex(play.empty);
@@ -394,7 +437,7 @@ function decide() { // ? Podría usar una matriz 3x3 para anotar los pesos de ca
         }
 
         if (cells[position].classList.contains('blue')) { // ? Si el enemigo tiene una ficha ahí
-            if (cells[position].classList.contains('medium')) {
+            if (cells[position].classList.contains('medium') && redPieces.large != 0) {
                 choice = {size: "large", pos: position};
                 finished = true;
                 break;
@@ -551,33 +594,37 @@ function crearTableroDesdeHTML() {
 
 highlightPick();
 
-setInterval(() => {
-    if (currentPlayer == 'red') {
-        let result = decide();
-        swapSize(result.size);
-     
-        let validMovement = fillPosition(cells[result.pos]);
-
-        if (validMovement) {
-
-            fillDiv(currentPlayer);
+if (aiPlays) {
+    setInterval(() => {
+        if (currentPlayer == 'red') {
+            let result = decide();
+            swapSize(result.size);
+         
+            let validMovement = fillPosition(cells[result.pos]);
     
-            if (checkWin()) {
-                message.innerHTML = `${winner} ha ganado!`;
-            } else {
-                currentPlayer = waitingPlayer;
+            if (validMovement) {
     
-                if (currentPlayer == 'blue') {
-                    waitingPlayer = 'red';
-                    turn.innerHTML = "azul";
+                fillDiv(currentPlayer);
+        
+                if (checkWin()) {
+                    message.innerHTML = `${winner} ha ganado!`;
+                } else if (isTie()) {
+                    message.innerHTML = `Wow! Ha sido un empate`;
                 } else {
-                    waitingPlayer = 'blue';
-                    turn.innerHTML = "rojo"
+                    currentPlayer = waitingPlayer;
+        
+                    if (currentPlayer == 'blue') {
+                        waitingPlayer = 'red';
+                        turn.innerHTML = "azul";
+                    } else {
+                        waitingPlayer = 'blue';
+                        turn.innerHTML = "rojo"
+                    }
+        
+                    highlightPick();
                 }
-    
-                highlightPick();
+        
             }
-    
         }
-    }
-}, 1000);
+    }, 1000);
+}
