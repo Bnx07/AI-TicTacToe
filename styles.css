@@ -1,0 +1,137 @@
+@font-face {
+    font-family: 'Mooli';
+    src: url('./Mooli-Regular.ttf');
+    font-style: normal;
+    font-weight: normal;
+}
+
+@font-face {
+    font-family: 'Noto';
+    src: url('./NotoSerifJP-Regular.otf');
+    font-style: normal;
+    font-weight: normal;
+}
+
+* {
+    font-family: 'Noto', sans-serif;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+button {
+    height: 100px;
+}
+
+#redWins {
+    font-family: 'Mooli', sans-serif;
+    color: rgba(182, 40, 40, 1);
+}
+
+#blueWins {
+    font-family: 'Mooli', sans-serif;
+    color: rgba(40, 40, 182, 1);
+}
+
+#ties {
+    font-family: 'Mooli', sans-serif;
+    color: rgb(7, 82, 0);
+}
+
+.showPieces {
+    width: 300px;
+    margin: 0 5px;
+    height: 309px;
+}
+
+.block {
+    display: flex;
+    flex-direction: row;
+}
+
+.blockReverse {
+    display: flex;
+    flex-direction: row-reverse;
+}
+
+.fixedHeight {
+    border-radius: 50px;
+    height: 100px;
+    margin-top: 3px;
+    transition: all ease 600ms;
+}
+
+.cell {
+    background-color: white;
+    height: 100px;
+    width: 100px;
+}
+
+.table {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 3px;
+    column-gap: 3px;
+    row-gap: 3px;
+    background-color: #000;
+    width: 306px;
+    height: 306px;
+}
+
+.white {
+    background-color: white;
+}
+
+.blue {
+    background: rgb(70, 65, 179);
+    background: radial-gradient(circle, rgba(70, 65, 179, 1) 0%, rgba(40, 40, 182, 1) 20%, rgba(0, 0, 99, 1) 70%);
+}
+
+.red {
+    background: rgb(179, 65, 65);
+    background: radial-gradient(circle, rgba(179, 65, 65, 1) 0%, rgba(182, 40, 40, 1) 20%, rgba(99, 0, 0, 1) 70%);
+}
+
+.large {
+    width: 90px;
+    height: 90px;
+    margin: 5px;
+    border-radius: 50%;
+}
+
+.medium {
+    width: 70px;
+    height: 70px;
+    margin: 15px;
+    border-radius: 50%;
+}
+
+.small {
+    width: 50px;
+    height: 50px;
+    margin: 25px;
+    border-radius: 50%;
+}
+
+#reset {
+    height: 50px;
+    width: 100px;
+    background-color: #007bff;
+    color: white;
+    border: 2px solid #007bff;
+    transition: all ease 300ms;
+}
+
+#reset:hover {
+    background-color: #0056b3;
+}
+
+@media (max-width: 600px) {
+    #main-block {
+        flex-direction: column;
+    }
+}
